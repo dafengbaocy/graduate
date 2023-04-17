@@ -141,7 +141,7 @@ for g=1:1:ger
                         error(i)=5*abs(S_theta(m,i)-D_theta(i));
                     else
                         error(i)=1;
-                end%-3dB~-10dB滚降
+                end%-3dB~-10dB滚降1111
              else if theta(i)>=10&&theta(i)<=20
                      if S_theta(m,i)<D_theta(i)
                 error(i)=5*abs(S_theta(m,i)-D_theta(i));%主瓣
