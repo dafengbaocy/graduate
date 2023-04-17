@@ -87,9 +87,9 @@ plot(theta,D_theta);
 grid on;
 
 %% 产生初始种群
-popsize = 50;                  % 初始种群个数
+popsize = 500;                  % 初始种群个数
 D = 16;                          % 空间维数
-ger = 500;                       % 最大迭代次数 
+ger = 200;                       % 最大迭代次数 
 
 limit = [0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 1;0, 1;0, 1;0, 1;0,1;0, 1;0, 1;];              % 设置位置参数限制
 vlimit = [-20, 20];             % 设置速度限制
@@ -98,7 +98,7 @@ c1 = 2;                       % 自我学习因子
 c2 = 2;                       % 群体学习因子 
 
 for i = 1:D
-    alpha = limit(i, 1) + (limit(i, 2) - limit(i, 1)) * rand(popsize, D);%初始种群的位置
+    alpha(:,i) = limit(i, 1) + (limit(i, 2) - limit(i, 1)) * rand(popsize, 1);%初始种群的位置
 end
 
 
@@ -123,7 +123,7 @@ for g=1:1:ger
     w_pso=zeros(N,1);
     for m=1:1:popsize
         for i =1:N
-            w_pso(i,1)=w_lcec(i,1)*exp(j*alpha(m,i)/180*pi)*alpha(m,i+N);
+            w_pso(i,1)=0.8*w_lcec(i,1)*exp(j*alpha(m,i)/180*pi)*alpha(m,i+N);
         end
         S_theta(m,:)=abs(w_pso'*a);
         S_theta(m,:)=20*log10(S_theta(m,:)/max(S_theta(m,:)));
@@ -132,19 +132,19 @@ for g=1:1:ger
         for i=1:length(theta)
              if theta(i)<=40.5&&theta(i)>=36.5  
                 if S_theta(m,i)>D_theta(i)
-                        error(i)=abs(S_theta(m,i)-D_theta(i));
+                        error(i)=(S_theta(m,i)-D_theta(i))^2;
                     else
                         error(i)=1;
                 end
              else if theta(i)<=70.5&&theta(i)>=66.5  
                 if S_theta(m,i)>D_theta(i)
-                        error(i)=abs(S_theta(m,i)-D_theta(i));
+                        error(i)=(S_theta(m,i)-D_theta(i))^2;
                     else
                         error(i)=1;
                 end%-3dB~-10dB滚降
              else if theta(i)>=10&&theta(i)<=20
                      if S_theta(m,i)<D_theta(i)
-                error(i)=abs(S_theta(m,i)-D_theta(i));%主瓣
+                error(i)=(S_theta(m,i)-D_theta(i))^2;%主瓣
                     
              else
                   error(i)=1;
@@ -152,9 +152,9 @@ for g=1:1:ger
              else
                   if S_theta(m,i)>D_theta(i)
                     
-                        error(i)=2*abs(S_theta(m,i)-D_theta(i)); %-20dB以下杂散电平
+                        error(i)=abs(S_theta(m,i)-D_theta(i)); %-20dB以下杂散电平
                   else
-                       error(i)=0.01;
+                       error(i)=1;
                   end
                     
              end
@@ -202,7 +202,7 @@ end
 figure(2)
 plot(theta,D_theta,'r');hold on;
 plot(theta,S_theta(max_index,:),'b');
-plot(theta,db(y_lcec),'g');
+% plot(theta,db(y_lcec),'g');
 xlabel("角度");
 ylabel("dB");
 ylim([-100,0]);

@@ -83,19 +83,22 @@ plot(theta,D_theta);
 grid on;
 %% 差分变异初始化
 NP=50;
-D=N;        % 优化个数
+D=2*N;        % 优化个数
 G=200;
 F0=0.4;
 CR=0.1;
-a=0;     % 寻优区间
-b=2;
+
 yz=10^-6;
- 
+limit = [0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 1;0, 1;0, 1;0, 1;0,1;0, 1;0, 1;];              % 设置位置参数限制 
+for i = 1:D
+    alpha = limit(i, 1) + (limit(i, 2) - limit(i, 1)) * rand(popsize, D);%初始种群的位置
+end
+
 x=zeros(D,NP);    % 初始种群
 v=zeros(D,NP);    % 变异种群
 u=zeros(D,NP);    % 选择种群
 %   种群初值
-x=rand(D,NP)*(b-a)+w_lcec;
+x=0.01*rand(D,NP)*(b-a)+w_lcec;
 %   计算目标参数
 ob=cost(NP,theta,a_start,x,D_theta);
 
