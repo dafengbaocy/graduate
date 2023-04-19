@@ -8,7 +8,7 @@ c=3e8;
 lamda=c/f;
 d=lamda/2;
 k=2*pi/lamda;
-N=8;
+N=16;
 
 %% 无干扰静态方向图
 theta=-90:0.1:90;
@@ -84,12 +84,22 @@ grid on;
 %% 差分变异初始化
 NP=50;
 D=2*N;        % 优化个数
-G=200;
-F0=0.4;
-CR=0.1;
+G=1000;
+F0=0.6;
+CR=0.9;
 
 yz=10^-6;
-limit = [0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 1;0, 1;0, 1;0, 1;0, 1;0,1;0, 1;0, 1;];              % 设置位置参数限制 
+limit=zeros(D,2);
+for mm=1:D
+    if(mm<=N)
+        limit(mm,2)=360;
+    else
+        limit(mm,2)=2;
+
+    end
+end
+
+            % 设置位置参数限制 
 for i = 1:D
     alpha (i,:)= limit(i, 1) + (limit(i, 2) - limit(i, 1)) * rand(NP,1);%初始种群的位置
 end
@@ -99,8 +109,11 @@ v=zeros(D,NP);    % 变异种群
 u=zeros(D,NP);    % 选择种群
 %   种群初值
 x=alpha;
+
 %   计算目标参数
-ob=cost(NP,theta,a_start,x,w_lcec,D_theta);
+SLL_d=-50;
+theta_d=10;
+ob=cost(NP,theta,a_start,x,w_lcec,theta_d,SLL_d);
 
 trace(1)=max(ob);
 %          差分进化循环
@@ -152,10 +165,10 @@ for gen=1:G
     
     % 自然选择
     % 计算新的适应度
-    ob_1=cost(NP,theta,a_start,u,w_lcec,D_theta);
+    ob_1=cost(NP,theta,a_start,u,w_lcec,theta_d,SLL_d);
     
     for m=1:NP
-        if ob_1(m)>ob(m)
+        if ob_1(m)<ob(m)
             x(:,m)=u(:,m);
         else
             x(:,m)=x(:,m);
@@ -164,10 +177,10 @@ for gen=1:G
     end
     % 现在x为经过选择后的种群
     
-    ob=cost(NP,theta,a_start,x,w_lcec,D_theta);
+    ob=cost(NP,theta,a_start,x,w_lcec,theta_d,SLL_d);
     
-    [trace(gen+1), temp]=max(ob);
-    tt=max(ob);
+    [trace(gen+1), temp]=min(ob);
+    tt=min(ob);
     
 end
 w_DE=exp(j*diag(x(1:(size(x,1)/2),temp))/180*pi)*diag(x(1+(size(x,1)/2):size(x,1),temp))*w_lcec; 
