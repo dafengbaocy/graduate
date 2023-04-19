@@ -1,9 +1,9 @@
-function[fit]=cost(popsize,theta,a,alpha_pso,D_theta)
+function[fit]=cost(popsize,theta,a,alpha_pso,w_lcec,D_theta)
 fit=zeros(1,popsize);        
 S_theta=zeros(popsize,length(theta));
 
 for m=1:1:popsize
-        w_pso=alpha_pso(:,m);
+        w_pso=exp(j*diag(alpha_pso(1:(size(alpha_pso,1)/2),m))/180*pi)*diag(alpha_pso(1+(size(alpha_pso,1)/2):size(alpha_pso,1),m))*w_lcec;
         S_theta(m,:)=abs(w_pso'*a);
         S_theta(m,:)=20*log10(S_theta(m,:)/max(S_theta(m,:)));
         error=zeros(1,length(theta));

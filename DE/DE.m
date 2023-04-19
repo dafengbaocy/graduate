@@ -89,18 +89,18 @@ F0=0.4;
 CR=0.1;
 
 yz=10^-6;
-limit = [0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 1;0, 1;0, 1;0, 1;0,1;0, 1;0, 1;];              % 设置位置参数限制 
+limit = [0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 1;0, 1;0, 1;0, 1;0, 1;0,1;0, 1;0, 1;];              % 设置位置参数限制 
 for i = 1:D
-    alpha = limit(i, 1) + (limit(i, 2) - limit(i, 1)) * rand(popsize, D);%初始种群的位置
+    alpha (i,:)= limit(i, 1) + (limit(i, 2) - limit(i, 1)) * rand(NP,1);%初始种群的位置
 end
 
 x=zeros(D,NP);    % 初始种群
 v=zeros(D,NP);    % 变异种群
 u=zeros(D,NP);    % 选择种群
 %   种群初值
-x=0.01*rand(D,NP)*(b-a)+w_lcec;
+x=alpha;
 %   计算目标参数
-ob=cost(NP,theta,a_start,x,D_theta);
+ob=cost(NP,theta,a_start,x,w_lcec,D_theta);
 
 trace(1)=max(ob);
 %          差分进化循环
@@ -152,7 +152,7 @@ for gen=1:G
     
     % 自然选择
     % 计算新的适应度
-    ob_1=cost(NP,theta,a_start,u,D_theta);
+    ob_1=cost(NP,theta,a_start,u,w_lcec,D_theta);
     
     for m=1:NP
         if ob_1(m)>ob(m)
@@ -164,13 +164,13 @@ for gen=1:G
     end
     % 现在x为经过选择后的种群
     
-    ob=cost(NP,theta,a_start,x,D_theta);
+    ob=cost(NP,theta,a_start,x,w_lcec,D_theta);
     
     [trace(gen+1), temp]=max(ob);
     tt=max(ob);
     
 end
-w_DE=x(:,temp); 
+w_DE=exp(j*diag(x(1:(size(x,1)/2),temp))/180*pi)*diag(x(1+(size(x,1)/2):size(x,1),temp))*w_lcec; 
 y_DE=w_DE'*a_start;
 y_DE=abs(y_DE);
 y_DE=y_DE/max(y_DE);
