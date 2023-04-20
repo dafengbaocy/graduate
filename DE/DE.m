@@ -8,7 +8,7 @@ c=3e8;
 lamda=c/f;
 d=lamda/2;
 k=2*pi/lamda;
-N=16;
+N=48;
 
 %% 无干扰静态方向图
 theta=-90:0.1:90;
@@ -84,7 +84,7 @@ grid on;
 %% 差分变异初始化
 NP=50;
 D=2*N;        % 优化个数
-G=1000;
+G=200;
 F0=0.6;
 CR=0.9;
 
@@ -94,7 +94,7 @@ for mm=1:D
     if(mm<=N)
         limit(mm,2)=360;
     else
-        limit(mm,2)=2;
+        limit(mm,2)=4;
 
     end
 end

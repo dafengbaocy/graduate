@@ -5,7 +5,7 @@ c=3e8;
 lamda=c/f;
 d=lamda/2;
 k=2*pi/lamda;
-N=8;
+N=48;
 
 %% 无干扰静态方向图
 theta=-90:0.1:90;
@@ -87,11 +87,19 @@ plot(theta,D_theta);
 grid on;
 
 %% 产生初始种群
-popsize = 500;                  % 初始种群个数
-D = 16;                          % 空间维数
+popsize = 50;                  % 初始种群个数
+D = 2*N;                          % 空间维数
 ger = 200;                       % 最大迭代次数 
 
-limit = [0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 360;0, 1;0, 1;0, 1;0, 1;0, 1;0,1;0, 1;0, 1;];              % 设置位置参数限制
+limit=zeros(D,2);
+for mm=1:D
+    if(mm<=N)
+        limit(mm,2)=360;
+    else
+        limit(mm,2)=2;
+
+    end
+end       % 设置位置参数限制
 vlimit = [-20, 20];             % 设置速度限制
 w = 0.5;                        % 惯性权重
 c1 = 2;                       % 自我学习因子
@@ -123,7 +131,7 @@ for g=1:1:ger
     w_pso=zeros(N,1);
     for m=1:1:popsize
         for i =1:N
-            w_pso(i,1)=0.8*w_lcec(i,1)*exp(j*alpha(m,i)/180*pi)*alpha(m,i+N);
+            w_pso(i,1)=w_lcec(i,1)*exp(j*alpha(m,i)/180*pi)*alpha(m,i+N);
         end
         S_theta(m,:)=abs(w_pso'*a);
         S_theta(m,:)=20*log10(S_theta(m,:)/max(S_theta(m,:)));
@@ -162,7 +170,7 @@ for g=1:1:ger
              end
         end
 
-        error=error+65/900*(max(S_theta(m,485:550))-min(S_theta(m,485:550)));%主瓣范围内纹波
+        error=error;%主瓣范围内纹波
         fit(m)=1/norm(error);
     end
     for i = 1:popsize      
