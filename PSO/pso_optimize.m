@@ -5,7 +5,7 @@ c=3e8;
 lamda=c/f;
 d=lamda/2;
 k=2*pi/lamda;
-N=48;
+N=16;
 
 %% 无干扰静态方向图
 theta=-90:0.1:90;
@@ -55,19 +55,19 @@ y_lcec=w_lcec'*a;
 y_lcec=abs(y_lcec);
 y_lcec=y_lcec/max(y_lcec);
 %% 画图
-figure(7);
-plot(theta,db(y_lcec),'b');
-
-
-xlabel("theta");
-ylabel('db');
-title("LCEC");
-grid on;
+% figure(7);
+% plot(theta,db(y_lcec),'b');
+% 
+% 
+% xlabel("theta");
+% ylabel('db');
+% title("LCEC");
+% grid on;
 
 %% 构建目标函数 干扰为38 68 信号为15度 零陷宽度为1度
 theta_3dB=38;
 theta_3dB_2=10;
-Am=70;
+Am=50;
 D_theta=zeros(1,L);
 for i=1:length(theta)
     if theta(i)<=40.5&&theta(i)>=36.5  
@@ -77,7 +77,7 @@ for i=1:length(theta)
       else if theta(i)>=10&&theta(i)<=20   
          D_theta(i)=0;
       else
-         D_theta(i)=-20; 
+         D_theta(i)=-30; 
       end
       end
     end
@@ -87,9 +87,9 @@ plot(theta,D_theta);
 grid on;
 
 %% 产生初始种群
-popsize = 50;                  % 初始种群个数
+popsize = 200;                  % 初始种群个数
 D = 2*N;                          % 空间维数
-ger = 200;                       % 最大迭代次数 
+ger = 400;                       % 最大迭代次数 
 
 limit=zeros(D,2);
 for mm=1:D
@@ -131,7 +131,7 @@ for g=1:1:ger
     w_pso=zeros(N,1);
     for m=1:1:popsize
         for i =1:N
-            w_pso(i,1)=w_lcec(i,1)*exp(j*alpha(m,i)/180*pi)*alpha(m,i+N);
+            w_pso(i,1)=w_lcec(i,1)*alpha(m,i+N)+exp(j*alpha(m,i)/180*pi);
         end
         S_theta(m,:)=abs(w_pso'*a);
         S_theta(m,:)=20*log10(S_theta(m,:)/max(S_theta(m,:)));
@@ -140,29 +140,29 @@ for g=1:1:ger
         for i=1:length(theta)
              if theta(i)<=40.5&&theta(i)>=36.5  
                 if S_theta(m,i)>D_theta(i)
-                        error(i)=(S_theta(m,i)-D_theta(i))^2;
+                        error(i)=(S_theta(m,i)-D_theta(i));
                     else
-                        error(i)=1;
+                        error(i)=0;
                 end
              else if theta(i)<=70.5&&theta(i)>=66.5  
                 if S_theta(m,i)>D_theta(i)
-                        error(i)=(S_theta(m,i)-D_theta(i))^2;
+                        error(i)=(S_theta(m,i)-D_theta(i));
                     else
-                        error(i)=1;
+                        error(i)=0;
                 end%-3dB~-10dB滚降
              else if theta(i)>=10&&theta(i)<=20
                      if S_theta(m,i)<D_theta(i)
-                error(i)=(S_theta(m,i)-D_theta(i))^2;%主瓣
+                error(i)=10*(-S_theta(m,i)+D_theta(i));%主瓣
                     
              else
-                  error(i)=1;
+                  error(i)=0;
                      end
              else
                   if S_theta(m,i)>D_theta(i)
                     
-                        error(i)=abs(S_theta(m,i)-D_theta(i)); %-20dB以下杂散电平
+                        error(i)=(S_theta(m,i)-D_theta(i)); %-20dB以下杂散电平
                   else
-                       error(i)=1;
+                       error(i)=0;
                   end
                     
              end
@@ -171,7 +171,7 @@ for g=1:1:ger
         end
 
         error=error;%主瓣范围内纹波
-        fit(m)=1/norm(error);
+        fit(m)=1/sum(error);
     end
     for i = 1:popsize      
         if fxm(i) < fit(i)
@@ -210,7 +210,7 @@ end
 figure(2)
 plot(theta,D_theta,'r');hold on;
 plot(theta,S_theta(max_index,:),'b');
-% plot(theta,db(y_lcec),'g');
+plot(theta,db(y_lcec),'g');
 xlabel("角度");
 ylabel("dB");
 ylim([-100,0]);
