@@ -30,7 +30,7 @@ title('静态和波束');
 grid on;
 %% 期望信号 噶闹信号 噪声信号
 M=512;%采样次数
-theta0=15;%期望信号角度
+theta0=0;%期望信号角度
 theta_i=[38 68];%干扰信号
 a_i=exp(1i*k*(0:N-1)'*d*sind(theta_i));%干扰信号对每个阵子的相移
 a0=exp(1i*k*(0:N-1)'*d*sind(theta0));%期望信号对每个阵子的相移 alpha
@@ -63,14 +63,14 @@ grid on;
 %% 构建目标函数 干扰为38 68 信号为15度 零陷宽度为1度
 theta_3dB=38;
 theta_3dB_2=10;
-Am=70;
+Am=50;
 D_theta=zeros(1,L);
 for i=1:length(theta)
     if theta(i)<=40.5&&theta(i)>=36.5  
         D_theta(i)=-min(12*((theta(i)/theta_3dB_2))^4,Am);
      else if theta(i)<=70.5&&theta(i)>=66.5 
         D_theta(i)=-min(12*((theta(i)/theta_3dB))^4,Am);
-      else if theta(i)>=10&&theta(i)<=20   
+      else if theta(i)>=-5&&theta(i)<=5   
          D_theta(i)=0;
       else
          D_theta(i)=-20; 
@@ -84,21 +84,22 @@ grid on;
 %% 差分变异初始化
 NP=200;
 D=2*N;        % 优化个数
-G=800;
-F0=0.5;
-CR=0.7;
+G=400;
+F0=0.6;
+CR=0.5;
 
 yz=10^-6;
-
 limit=zeros(D,2);
 for mm=1:D
     if(mm<=N)
         limit(mm,2)=360;
     else
-        limit(mm,2)=1;
+        limit(mm,2)=4;
 
-    end 
+    end
 end
+
+            % 设置位置参数限制 
 for i = 1:D
     alpha (i,:)= limit(i, 1) + (limit(i, 2) - limit(i, 1)) * rand(NP,1);%初始种群的位置
 end
@@ -108,8 +109,11 @@ v=zeros(D,NP);    % 变异种群
 u=zeros(D,NP);    % 选择种群
 %   种群初值
 x=alpha;
+
 %   计算目标参数
-ob=cost(NP,theta,a_start,x,w_lcec,D_theta);
+SLL_d=-20;
+theta_d=10;
+ob=cost(NP,theta,a_start,x,w_lcec,theta_d,SLL_d,D_theta);
 
 trace(1)=max(ob);
 %          差分进化循环
@@ -161,10 +165,10 @@ for gen=1:G
     
     % 自然选择
     % 计算新的适应度
-    ob_1=cost(NP,theta,a_start,u,w_lcec,D_theta);
+    ob_1=cost(NP,theta,a_start,u,w_lcec,theta_d,SLL_d,D_theta);
     
     for m=1:NP
-        if ob_1(m)>ob(m)
+        if ob_1(m)<ob(m)
             x(:,m)=u(:,m);
         else
             x(:,m)=x(:,m);
@@ -173,15 +177,16 @@ for gen=1:G
     end
     % 现在x为经过选择后的种群
     
-    ob=cost(NP,theta,a_start,x,w_lcec,D_theta);
+    ob=cost(NP,theta,a_start,x,w_lcec,theta_d,SLL_d,D_theta);
     
-    [trace(gen+1), temp]=max(ob);
-    tt=max(ob);
+    [trace(gen+1), temp]=min(ob);
+    tt=min(ob);
     
 end
-for i =1:N
-            w_DE(i,1)=w_lcec(i,1)*x(i+N,m)+exp(j*x(i,m)/180*pi);
-        end
+ 
+        for i =1:N
+             w_DE(i,1)=w_lcec(i,1)*exp(j*x(i,temp)/180*pi)+x(i+N,temp);
+         end 
 y_DE=w_DE'*a_start;
 y_DE=abs(y_DE);
 y_DE=y_DE/max(y_DE);
@@ -196,6 +201,8 @@ grid on;
 figure(4)
 plot(theta,D_theta,'r');hold on;
 plot(theta,db(y_DE),'b');
+plot(theta,db(y_lcec),'g');
+legend('期望','DE','LCEC');
 xlabel("角度");
 ylabel("dB");
 ylim([-100,0]);

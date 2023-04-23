@@ -77,7 +77,7 @@ for i=1:length(theta)
       else if theta(i)>=10&&theta(i)<=20   
          D_theta(i)=0;
       else
-         D_theta(i)=-30; 
+         D_theta(i)=-20; 
       end
       end
     end
